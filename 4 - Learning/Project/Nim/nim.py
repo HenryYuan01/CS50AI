@@ -101,7 +101,8 @@ class NimAI():
         Return the Q-value for the state `state` and the action `action`.
         If no Q-value exists yet in `self.q`, return 0.
         """
-        raise NotImplementedError
+        q_val = self.q.get((tuple(state), action))
+        return q_val if q_val else 0
 
     def update_q_value(self, state, action, old_q, reward, future_rewards):
         """
@@ -118,7 +119,9 @@ class NimAI():
         `alpha` is the learning rate, and `new value estimate`
         is the sum of the current reward and estimated future rewards.
         """
-        raise NotImplementedError
+        print(old_q)
+        new_q = old_q + self.alpha * ((reward + future_rewards) - old_q)
+        self.q[(tuple(state), action)] = new_q
 
     def best_future_reward(self, state):
         """
@@ -130,7 +133,21 @@ class NimAI():
         Q-value in `self.q`. If there are no available actions in
         `state`, return 0.
         """
-        raise NotImplementedError
+        actions = Nim.available_actions(state)
+
+        if not actions:
+            return 0
+
+        best_action_value = None
+
+        for action in actions:
+            action_value = self.q.get((tuple(state), action))
+            action_value = action_value if action_value else 0
+
+            if best_action_value == None or action_value > best_action_value:
+                best_action_value = action_value
+
+        return best_action_value
 
     def choose_action(self, state, epsilon=True):
         """
@@ -147,7 +164,23 @@ class NimAI():
         If multiple actions have the same Q-value, any of those
         options is an acceptable return value.
         """
-        raise NotImplementedError
+        actions = Nim.available_actions(state)
+
+        if epsilon and random.random() <= self.epsilon:
+            return random.choice(list(actions))
+
+        best_action = None
+        best_action_value = None
+
+        for action in actions:
+            action_value = self.q.get((tuple(state), action))
+            action_value = action_value if action_value else 0
+
+            if best_action_value == None or action_value > best_action_value:
+                best_action_value = action_value
+                best_action = action
+        return best_action
+
 
 
 def train(n):
